@@ -1,0 +1,49 @@
+#!/usr/bin/env ruby
+require 'yaml'
+require 'awesome_print'
+require_relative '../lib/syntax_convertor.rb'
+
+def difference(a, b)
+  diff = (a.size >= b.size) ? a.to_a - b.to_a : b.to_a - a.to_a
+  Hash[*diff.flatten]
+end
+
+if ARGV.empty?
+  puts "USAGE: sublime_syntax_convertor files"
+  puts "       sublime_syntax_convertor folder"
+else
+  filenames = []
+  ARGV.each do |path|
+    path = File.expand_path(path)
+    if File.directory?(path)
+      filenames.push(*Dir[File.join(path, '*.tmLanguage')])
+    else
+      filenames.push(path)
+    end
+  end
+
+  filenames.each do |fname|
+    # outfile = File.join(File.dirname(fname), File.basename(fname, '.tmLanguage') + ".sublime-syntax")
+    outfile = File.expand_path(File.join(File.dirname(fname), '../output', File.basename(fname, '.tmLanguage') + ".sublime-syntax"))
+    if File.exist?(outfile)
+      # puts "file already exists: #{outfile}"
+      # next
+      File.delete(outfile)
+    end
+
+    convertor = Sublime::SyntaxConvertor.new(File.read(fname))
+    text = convertor.to_yaml
+
+    # verify that to_yaml produces valid yaml for this syntax
+    if convertor.syntax != YAML.load(text.gsub('%YAML 1.2', ''))
+      yaml = YAML.load(text.gsub('%YAML 1.2', ''))
+      syntax = convertor.syntax
+      diff = difference(yaml, syntax)
+      ap diff
+      fail "Sorry, generated invalid YAML! #{fname}"
+    end
+
+    File.open(outfile, "w") { |f| f.write(text) }
+    puts "converted #{outfile}"
+  end
+end
