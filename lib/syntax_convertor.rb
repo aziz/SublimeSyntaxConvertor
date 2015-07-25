@@ -1,4 +1,5 @@
 require 'plist'
+require_relative "./syntax_yaml"
 
 module Sublime
   class SyntaxConvertor
@@ -14,84 +15,8 @@ module Sublime
       convert
     end
 
-    def to_yaml(val = @syntax, start_block_on_newline = false, indent = 0)
-      tab_size = 2
-      out = ""
-
-      if indent == 0
-        out += "%YAML 1.2\n---\n"
-        out += "# http://www.sublimetext.com/docs/3/syntax.html\n"
-      end
-
-      if val.is_a?(Array)
-        if val.size == 0
-          out += "[]\n"
-        else
-          out += "\n" if start_block_on_newline
-          val.each do |x|
-            out += " " * indent
-            out += "- "
-            out += to_yaml(x, false, indent + 2)
-          end
-        end
-      elsif val.is_a?(Hash)
-        out += "\n" if start_block_on_newline
-        first = true
-        order_keys(val.keys).each do |k|
-          v = val[k]
-          if !first || start_block_on_newline
-            out += " " * indent
-          else
-            first = false
-          end
-
-          if k.is_a?(Numeric)
-            out += k.to_s
-          elsif needs_yaml_quoting(k)
-            out += quote(k)
-          else
-            out += k
-          end
-
-          out += ": "
-          out += to_yaml(v, true, indent + tab_size)
-        end
-      elsif val.is_a?(String)
-        if needs_yaml_quoting(val)
-          if val.include?("\n")
-            fail unless start_block_on_newline
-            if start_block_on_newline
-              if val[-1] == "\n"
-                out += "|\n"
-              else
-                out += "|-\n"
-              end
-            end
-            val.split("\n").each do |l|
-              out += " " * indent
-              out += l
-              out += "\n"
-            end
-          else
-            out += quote(val)
-            out += "\n"
-          end
-        else
-          out += val
-          out += "\n"
-        end
-      elsif val.is_a?(TrueClass) || val.is_a?(FalseClass)
-        if val
-          out += "true\n"
-        else
-          out += "false\n"
-        end
-      else
-        out += "#{val}\n"
-      end
-      # to_yaml will leave some trailing whitespace, remove it
-      cleaned_yaml = out.split("\n").map(&:rstrip).join("\n") + "\n"
-      cleaned_yaml
+    def to_yaml
+      Sublime::SyntaxYaml.new(@syntax).yaml
     end
 
     private
@@ -298,46 +223,6 @@ module Sublime
 
     def leading_whitespace(s)
       s[0...(s.size - s.lstrip.size)]
-    end
-
-    #----------------------------------------------------------
-
-    def order_keys(l)
-        key_order = %w(name main match comment file_extensions first_line_match hidden match scope main).reverse
-        l = l.sort
-        key_order.each do |key|
-          if l.include?(key)
-            l.delete_at(l.index(key))
-            l.insert(0, key)
-          end
-        end
-        l
-    end
-
-    def needs_yaml_quoting(s)
-      (
-        s == "" ||
-        "\"'%-:?@`&*!,#|>0123456789=".include?(s[0]) ||
-        s.start_with?('<<') ||
-        ['true', 'false', 'null'].include?(s) ||
-        s.include?("# ") ||
-        s.include?(': ') ||
-        s.include?('[') ||
-        s.include?(']') ||
-        s.include?('{') ||
-        s.include?('}') ||
-        s.include?("\n") ||
-        ":#".include?(s[-1]) ||
-        s.strip != s
-      )
-    end
-
-    def quote(s)
-      if s.include?("\\") || s.include?('"')
-        return "'" + s.gsub("'", "''") + "'"
-      else
-        return '"' + s.gsub("\\", "\\\\").gsub('"', '\\"') + '"'
-      end
     end
 
   end
