@@ -1,7 +1,6 @@
 #!/usr/bin/env ruby
 require 'yaml'
-require 'awesome_print'
-require_relative '../lib/syntax_convertor.rb'
+require_relative '../lib/sublime_syntax_convertor'
 
 def difference(a, b)
   diff = (a.size >= b.size) ? a.to_a - b.to_a : b.to_a - a.to_a
@@ -29,7 +28,7 @@ else
       File.delete(outfile)
     end
 
-    convertor = Sublime::SyntaxConvertor.new(File.read(fname))
+    convertor = SublimeSyntaxConvertor::Convertor.new(File.read(fname))
     text = convertor.to_yaml
 
     # verify that to_yaml produces valid yaml for this syntax
@@ -37,7 +36,6 @@ else
       yaml = YAML.load(text.gsub('%YAML 1.2', ''))
       syntax = convertor.syntax
       diff = difference(yaml, syntax)
-      ap diff
       fail "Sorry, generated invalid YAML! #{fname}"
     end
 

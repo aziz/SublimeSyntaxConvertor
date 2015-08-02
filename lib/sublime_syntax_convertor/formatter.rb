@@ -1,5 +1,5 @@
-module Sublime
-  module SyntaxFormatter
+module SublimeSyntaxConvertor
+  module Formatter
     def format_comment(str)
       str = str.strip.gsub("\t", "    ")
       str = str.rstrip + "\n" if str.include?("\n")

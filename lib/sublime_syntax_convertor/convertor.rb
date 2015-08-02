@@ -1,11 +1,6 @@
-require 'plist'
-require_relative "./syntax_formatter"
-require_relative "./patterns"
-require_relative "./syntax_yaml"
-
-module Sublime
-  class SyntaxConvertor
-    include SyntaxFormatter
+module SublimeSyntaxConvertor
+  class Convertor
+    include Formatter
     attr_reader :syntax
 
     def initialize(lang)
@@ -18,7 +13,7 @@ module Sublime
     end
 
     def to_yaml
-      Sublime::SyntaxYaml.new(@syntax).yaml
+      SyntaxYaml.new(@syntax).yaml
     end
 
     private

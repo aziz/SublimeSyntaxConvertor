@@ -1,8 +1,8 @@
-require_relative "./syntax_formatter"
+require_relative './formatter'
 
-module Sublime
+module SublimeSyntaxConvertor
   class SyntaxYaml
-    include SyntaxFormatter
+    include Formatter
     attr_reader :yaml
     TAB_SIZE = 2
 

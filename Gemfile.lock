@@ -1,3 +1,9 @@
+PATH
+  remote: .
+  specs:
+    sublime_syntax_convertor (0.1.0)
+      plist
+
 GEM
   remote: https://rubygems.org/
   specs:
@@ -66,6 +72,7 @@ GEM
       method_source (~> 0.8.1)
       slop (~> 3.4)
     rainbow (2.0.0)
+    rake (10.4.2)
     rb-fsevent (0.9.5)
     rb-inotify (0.9.5)
       ffi (>= 0.5.0)
@@ -123,11 +130,13 @@ PLATFORMS
 
 DEPENDENCIES
   awesome_print
+  bundler (~> 1.10)
   guard-rspec
-  plist
+  rake (~> 10.0)
   rspec
   rubycritic
   simplecov
+  sublime_syntax_convertor!
 
 BUNDLED WITH
    1.10.6

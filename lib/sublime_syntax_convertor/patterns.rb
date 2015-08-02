@@ -1,8 +1,8 @@
-require_relative "./syntax_formatter"
+require_relative './formatter'
 
-module Sublime
+module SublimeSyntaxConvertor
   class MatchPattern
-    include SyntaxFormatter
+    include Formatter
     attr_reader :match, :scope, :captures, :comment
 
     def initialize(pat)
@@ -23,7 +23,7 @@ module Sublime
   end
 
   class BeginEndPattern
-    include SyntaxFormatter
+    include Formatter
     attr_reader :match, :pop, :captures
 
     def initialize(type, pattern)

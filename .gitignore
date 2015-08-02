@@ -1,5 +1,9 @@
-tmp/
-files/
-converted/
-output/
-README.md
+/.bundle/
+/.yardoc
+/Gemfile.lock
+/_yardoc/
+/coverage/
+/doc/
+/pkg/
+/spec/reports/
+/tmp/
