@@ -23,11 +23,9 @@ else
   end
 
   filenames.each do |fname|
-    # outfile = File.join(File.dirname(fname), File.basename(fname, '.tmLanguage') + ".sublime-syntax")
-    outfile = File.expand_path(File.join(File.dirname(fname), '../output', File.basename(fname, '.tmLanguage') + ".sublime-syntax"))
+    outfile = File.join(File.dirname(fname), File.basename(fname, '.tmLanguage') + ".sublime-syntax")
     if File.exist?(outfile)
-      # puts "file already exists: #{outfile}"
-      # next
+      puts "file already exists, deleting: #{outfile}"
       File.delete(outfile)
     end
 

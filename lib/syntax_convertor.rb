@@ -1,12 +1,12 @@
 require 'plist'
 require_relative "./syntax_formatter"
+require_relative "./patterns"
 require_relative "./syntax_yaml"
 
 module Sublime
   class SyntaxConvertor
-    attr_reader :syntax
-
     include SyntaxFormatter
+    attr_reader :syntax
 
     def initialize(lang)
       @lang       = Plist.parse_xml(lang)
@@ -23,7 +23,6 @@ module Sublime
 
     private
 
-    # normalize the repository values into being a list of patterns
     def normalize_repository
       @repository.each do |key, value|
         if value.key?('begin') || value.key?('match')
@@ -57,50 +56,27 @@ module Sublime
       @syntax = syntax
     end
 
-    def create_rule(type, pattern)
-      entry = {}
-      entry['match'] = format_regex(pattern[type])
-      entry['pop'] = true if type == 'end'
-      pattern_key = pattern["#{type}Captures"] || pattern["captures"]
-      if pattern_key
-        captures = format_captures(pattern_key)
-        if captures.key?('0')
-          entry['scope'] = captures['0']
-          captures.delete('0')
-        end
-        entry['captures'] = captures if captures.size > 0
-      end
+    def handle_begin_pattern(pattern)
+      entry = BeginEndPattern.new('begin', pattern).to_h
+      entry['comment'] = format_comment(pattern['comment']) if pattern.key?('comment') && !format_comment(pattern['comment']).empty?
+      entry['push'] = handle_child_pattern(pattern)
       entry
     end
 
-    def handle_begin_pattern(pattern)
-      entry = create_rule('begin', pattern)
-      end_entry = create_rule('end', pattern)
-
+    def handle_child_pattern(pattern)
+      end_entry = BeginEndPattern.new('end', pattern).to_h
+      child_patterns =  pattern.key?('patterns') ? pattern["patterns"] : []
+      child = make_context(child_patterns)
+      apply_last = pattern.key?('applyEndPatternLast') && pattern['applyEndPatternLast'] == 1
+      apply_last ? child.push(end_entry) : child.unshift(end_entry)
+      child.unshift('meta_content_scope' => pattern['contentName']) if pattern.key?('contentName')
+      child.unshift('meta_scope' => pattern['name']) if pattern.key?('name')
       if end_entry['match'].include? "\\G"
         puts """WARNING:
         pop pattern contains \\G, this will not work as expected
         if it's intended to refer to the begin regex: #{end_entry['match']}"""
       end
-
-      apply_last = pattern.key?('applyEndPatternLast') && pattern['applyEndPatternLast'] == 1
-      child_patterns =  pattern.key?('patterns') ? pattern["patterns"] : []
-      child = make_context(child_patterns)
-      apply_last ? child.push(end_entry) : child.unshift(end_entry)
-      child.unshift('meta_content_scope' => pattern['contentName']) if pattern.key?('contentName')
-      child.unshift('meta_scope' => pattern['name']) if pattern.key?('name')
-      entry['comment'] = format_comment(pattern['comment']) if pattern.key?('comment') && !format_comment(pattern['comment']).empty?
-      entry['push'] = child
-      entry
-    end
-
-    def handle_match_pattern(pattern)
-      entry = {}
-      entry['match'] = format_regex(pattern['match'])
-      entry['scope'] = pattern['name'] if pattern.key?('name')
-      entry['captures'] = format_captures(pattern['captures']) if pattern.key?('captures')
-      entry['comment'] = format_comment(pattern['comment']) if pattern.key?('comment') && !format_comment(pattern['comment']).empty?
-      entry
+      child
     end
 
     def handle_include_pattern(pattern)
@@ -126,7 +102,7 @@ module Sublime
         if pattern.key?('begin')
           entry = handle_begin_pattern(pattern)
         elsif pattern.key?('match')
-          entry = handle_match_pattern(pattern)
+          entry = MatchPattern.new(pattern).to_h
         elsif pattern.key?('include')
           entry = handle_include_pattern(pattern)
         else

@@ -3,15 +3,16 @@ require_relative "./syntax_formatter"
 module Sublime
   class SyntaxYaml
     include SyntaxFormatter
-
-    TAB_SIZE = 2
     attr_reader :yaml
+    TAB_SIZE = 2
 
-    def initialize(val, start_block_on_newline = false, indent = 0)
-      @yaml = to_yaml(val, start_block_on_newline, indent)
+    def initialize(val)
+      @yaml = to_yaml(val, false, 0)
     end
 
-    def to_yaml(val, start_block_on_newline = false, indent = 0)
+    private
+
+    def to_yaml(val, start_block_on_newline, indent)
       out = ''
 
       if indent == 0
@@ -33,8 +34,6 @@ module Sublime
       # to_yaml will leave some trailing whitespace, remove it
       out.split("\n").map(&:rstrip).join("\n") + "\n"
     end
-
-    private
 
     def array_to_yaml(val, start_block_on_newline, indent)
       out = ''
