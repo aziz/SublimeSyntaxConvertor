@@ -1,5 +1,9 @@
+require_relative "./syntax_formatter"
+
 module Sublime
   class SyntaxYaml
+    include SyntaxFormatter
+
     TAB_SIZE = 2
     attr_reader :yaml
 
@@ -38,7 +42,7 @@ module Sublime
         out += "[]\n"
       else
         out += "\n" if start_block_on_newline
-        val.each { |x| out += ' ' * indent + '- ' + to_yaml(x, false, indent + 2) }
+        val.each { |item| out += ' ' * indent + '- ' + to_yaml(item, false, indent + 2) }
       end
       out
     end
@@ -47,24 +51,24 @@ module Sublime
       out = ''
       out += "\n" if start_block_on_newline
       first = true
-      order_keys(val.keys).each do |k|
-        v = val[k]
+      order_keys(val.keys).each do |key|
+        value = val[key]
         if !first || start_block_on_newline
           out += ' ' * indent
         else
           first = false
         end
 
-        if k.is_a?(Numeric)
-          out += k.to_s
-        elsif needs_quoting?(k)
-          out += quote(k)
+        if key.is_a?(Numeric)
+          out += key.to_s
+        elsif needs_quoting?(key)
+          out += quote(key)
         else
-          out += k
+          out += key
         end
 
         out += ": "
-        out += to_yaml(v, true, indent + TAB_SIZE)
+        out += to_yaml(value, true, indent + TAB_SIZE)
       end
       out
     end
@@ -75,7 +79,7 @@ module Sublime
         if val.include?("\n")
           fail unless start_block_on_newline
           out += (val[-1] == "\n") ? "|\n" : "|-\n"
-          val.split("\n").each { |l| out += "#{' ' * indent}#{l}\n" }
+          val.split("\n").each { |line| out += "#{' ' * indent}#{line}\n" }
         else
           out += "#{quote(val)}\n"
         end
@@ -99,32 +103,6 @@ module Sublime
         end
       end
       list
-    end
-
-    def needs_quoting?(s)
-      (
-        s == "" ||
-        s.start_with?('<<') ||
-        "\"'%-:?@`&*!,#|>0123456789=".include?(s[0]) ||
-        %w(true false null).include?(s) ||
-        s.include?("# ") ||
-        s.include?(': ') ||
-        s.include?('[') ||
-        s.include?(']') ||
-        s.include?('{') ||
-        s.include?('}') ||
-        s.include?("\n") ||
-        ":#".include?(s[-1]) ||
-        s.strip != s
-      )
-    end
-
-    def quote(s)
-      if s.include?("\\") || s.include?('"')
-        return "'" + s.gsub("'", "''") + "'"
-      else
-        return '"' + s.gsub("\\", "\\\\").gsub('"', '\\"') + '"'
-      end
     end
 
   end
