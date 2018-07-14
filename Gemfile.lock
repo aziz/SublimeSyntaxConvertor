@@ -51,7 +51,7 @@ GEM
       guard-compat (~> 1.1)
       rspec (>= 2.99.0, < 4.0)
     ice_nine (0.11.1)
-    json (1.8.3)
+    json (1.8.6)
     listen (3.0.3)
       rb-fsevent (>= 0.9.3)
       rb-inotify (>= 0.9)
@@ -139,4 +139,4 @@ DEPENDENCIES
   sublime_syntax_convertor!
 
 BUNDLED WITH
-   1.10.6
+   1.16.2

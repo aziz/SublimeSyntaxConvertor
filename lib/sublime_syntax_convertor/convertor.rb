@@ -101,7 +101,7 @@ module SublimeSyntaxConvertor
         elsif pattern.key?('include')
           entry = handle_include_pattern(pattern)
         else
-          fail Exception("unknown pattern type: #{pattern.keys}")
+          fail Exception.new("unknown pattern type: #{pattern.keys}")
         end
         ctx.push(entry) if entry
       end
