@@ -78,7 +78,7 @@ module SublimeSyntaxConvertor
       key = pattern['include']
       if key[0] == '#'
         key = key[1..-1]
-        fail Exception("no entry in repository for #{key}") unless @repository.key?(key)
+        fail Exception.new("no entry in repository for #{key}") unless @repository.key?(key)
         return { 'include' => key }
       elsif key == '$self'
         return { 'include' => 'main' }
