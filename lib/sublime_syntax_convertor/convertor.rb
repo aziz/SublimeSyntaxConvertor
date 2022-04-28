@@ -1,3 +1,5 @@
+require "yaml"
+
 module SublimeSyntaxConvertor
   class Convertor
     include Formatter
@@ -5,6 +7,9 @@ module SublimeSyntaxConvertor
 
     def initialize(lang)
       @lang       = Plist.parse_xml(lang)
+      if @lang.nil?
+        @lang = YAML.load(lang)
+      end
       @repository = @lang.fetch('repository', {})
       @patterns   = @lang.fetch('patterns', [])
       @syntax     = {}
